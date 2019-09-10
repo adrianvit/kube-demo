@@ -3,8 +3,8 @@
 #tag - Which image version to use. This values is normally overridden during a deploy
 #pullPolicy - always download the image. This can also be set to download the image if it doesn't exist
 image:
-  repository: 10.96.65.133:5000/kube-demo
-  tag: latest
+  repository: REPOSITORY_IP:5000/kube-demo
+  tag: 1.0
   pullPolicy: Always
 
 #Networking attributes:
