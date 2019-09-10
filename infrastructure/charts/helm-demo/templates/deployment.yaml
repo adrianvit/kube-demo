@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    "helm.sh/chart": {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "fullname" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: deployment
+    app.kubernetes.io/part-of: {{ template "fullname" . }}
+spec:
+  replicas: {{ .Values.application.scaling.minReplicas }}
+  selector:
+    matchLabels:
+      app: {{ template "fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "fullname" . }}
+    spec:
+      containers:
+      - name: {{ template "fullname" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        resources:
+          requests:
+            memory: {{ .Values.application.memory.request }}
+            cpu: {{ .Values.application.cpu.request }}
+          limits:
+            memory: {{ .Values.application.memory.limit }}
+            cpu: {{ .Values.application.cpu.limit }}
+        ports:
+        - containerPort: {{ .Values.application.port }}
+          name: app-port
+        env:
+        - name: JVM_OPTS
+          value: "{{ .Values.application.env.jvm }} {{ .Values.application.env.extra }}"
+        - name: API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: sampleApiToken
+              name: application-secret
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: {{ .Values.application.baseUrl }}{{ .Values.application.ready.path }}
+            port: {{ .Values.application.port }}
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: {{ .Values.application.baseUrl }}{{ .Values.application.live.path }}
+            port: {{ .Values.application.port }}
+            scheme: HTTP
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: config
+          mountPath: "/config"
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "fullname" . }}
+          items:
+          - key: {{ .Values.application.env.configKey }}
+            path: {{ .Values.application.env.configKey }}

@@ -1,0 +1,54 @@
+#Image attributes
+#repository- the Docker repository that hosts the image. Should be synced to wherever the images is pushed in the Jenkinsfile
+#tag - Which image version to use. This values is normally overridden during a deploy
+#pullPolicy - always download the image. This can also be set to download the image if it doesn't exist
+image:
+  repository: 10.96.65.133:5000/kube-demo
+  tag: latest
+  pullPolicy: Always
+
+#Networking attributes:
+#dns - the subdomain that will be used to access the service
+#serviceType: what kind of service to create (default to ClusterIp)
+networking:
+  serviceType: NodePort
+
+#Application attributes:
+#port - the application the service runs on inside of docker
+#baseUrl - mapped to the server context path, also used in the liveness and readiness probe
+#live.path - check to determine if the service is started
+#ready.path - check to determine if the service is ready to accept connection
+#env.jvm - any jvm parameters but usually just defines the memory allocation
+#env.extra - application specific JVM arguments like the spring profile
+#env.configKey - the application.properties file to map in the config folder in the mounted volume
+#memory.request - how much memory the container needs
+#memory.limit - the hard memory limit for the container
+#cpu.request - how much cpu the container needs
+#cpu.limit - the hard cpu limit for the container
+#scaling.minReplicas - the min amount of pods that the service creates
+#scaling.maxReplicas - the max amount of pods that the service creates
+#scaling.cpuAverage - average cpu threshold used to scale the service
+#scaling.memoryAverage - average memory threshold used to scale the service
+#secret.name - the name of the secret used to load credentials as environment variables in the pod
+application:
+  port: 8080
+  baseUrl: "/kube-demo"
+  live:
+    path: "/actuator/health"
+  ready:
+    path: "/actuator/health"
+  env:
+    jvm: "-Xmx2048m -Xms512m"
+    extra: "-Dspring.profiles.active=dev"
+    configKey: "application.properties"
+  memory:
+    request: "256Mi"
+    limit: "512Mi"
+  cpu:
+    request: "256m"
+    limit: "500m"
+  scaling:
+    minReplicas: 1
+    maxReplicas: 2
+    cpuAverage: 80
+    memoryAverage: 80

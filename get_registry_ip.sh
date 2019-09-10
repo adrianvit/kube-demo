@@ -1,0 +1,1 @@
+kubectl get service --namespace default -l "app=docker-registry,release=irreverent-clam" -o jsonpath="{.items[0].spec.clusterIP}"
